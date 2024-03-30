@@ -1,0 +1,248 @@
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+**Homework 2 - Sampling and Warping**
+
+Student Name: Tao Zhang
+
+Legi Number: 23-955-511
+
+(Note: please read the [supplementary](#supplementary) section first before working on this report.)
+
+# Square to Uniform Disk
+**Time spent on this task: 3min**
+
+**Describe your implementation of `Warp::squareToUniformDisk` and the associated PDF.**
+
+The PDF in cartesian coordinates is $p_{c}(x,y)=\frac{1}{\pi}$ when $x^2+y^2\le 1$, and zero otherwise.
+We want to use polar coordinates so let $x = r\cos\theta$ and $y = r\sin\theta$. Then $J_{T}(r,\theta)=
+\begin{bmatrix}
+\frac{\partial x}{\partial r} & \frac{\partial x}{\partial \theta}\\
+\frac{\partial y}{\partial r} & \frac{\partial y}{\partial \theta}
+\end{bmatrix}=
+\begin{bmatrix}
+\cos\theta & -r\sin\theta\\
+\sin\theta & r\cos\theta
+\end{bmatrix}$,
+then $|J_{T}|=r$, then $p(r,\theta)=|J_{T}|p_{c}(x,y)=\frac{r}{\pi}$.
+Then $p(r)=\int_{0}^{2\pi}p(r,\theta^{\prime})d\theta^{\prime}=2r$, $p(\theta | r)=\frac{p(r,\theta)}{p(r)}=\frac{1}{2\pi}$.
+Then the CDFs $P(r)=\int_{0}^{r}2r^{\prime} dr^{\prime}=r^2$ and $P(\theta |r)=\int_{0}^{\theta}\frac{1}{2\pi} d\theta^{\prime}=\frac{\theta}{2\pi}$.
+By inversion method, $r=\sqrt{\xi_1}$ and $\theta = 2\pi \xi_{2}$, where $\xi_{1}$ and $\xi_{2}$ are uniform random variables in $[0,1)$.
+The points we sample is just $(\cos\theta, \sin\theta)$.
+
+**Warping Visualization:**
+
+<p style="text-align:center;"><img src="images/warp-disk.png" alt="Uniform Disk Warp" /></p>
+
+**$\chi^2$ Hypothesis Test Outcome:**
+
+<p style="text-align:center;"><img src="images/chi2-disk.png" alt="Uniform Disk Chi2 Test" /></p>
+
+
+# Square to Uniform Sphere
+**Time spent on this task: 1min**
+
+**Describe your implementation of `Warp::squareToUniformSphere` and the associated PDF.**
+
+Uniform sphere is a special case of uniform spherical cap with $\theta_{max}=\pi$. See
+the section of [uniform spherical cap](#SquaretoUniformSphericalCap) for details. For implementation just use functions `squareToUniformSphericalCap` and
+`squareToUniformSphericalCapPDF` with $\cos\theta_{max}=-1$.
+
+**Warping Visualization:**
+
+<p style="text-align:center;"><img src="images/warp-sphere.png" alt="Uniform Sphere Warp" /></p>
+
+**$\chi^2$ Hypothesis Test Outcome:**
+
+<p style="text-align:center;"><img src="images/chi2-sphere.png" alt="Uniform Sphere Chi2 Test" /></p>
+
+
+# Square to Uniform Hemisphere
+**Time spent on this task: 1min**
+
+**Describe your implementation of `Warp::squareToUniformHemisphere` and the associated PDF.**
+
+Uniform hemisphere is a special case of uniform spherical cap with $\theta_{max}=\frac{\pi}{2}$. See
+the section of [uniform spherical cap](#SquaretoUniformSphericalCap) for details. For implementation just use functions `squareToUniformSphericalCap` and
+`squareToUniformSphericalCapPDF` with $\cos\theta_{max}=0$.
+
+**Warping Visualization:**
+
+<p style="text-align:center;"><img src="images/warp-hemisphUni.png" alt="Uniform Hemisphere Warp" /></p>
+
+**$\chi^2$ Hypothesis Test Outcome:**
+
+<p style="text-align:center;"><img src="images/chi2-hemisphUni.png" alt="Uniform Hemisphere Chi2 Test" /></p>
+
+
+# Square to Uniform Spherical Cap
+**Time spent on this task: 30min**
+
+**Describe your implementation of `Warp::squareToUniformSphericalCap` and the associated PDF.**
+
+First we calculate the area of the spherical cap $A=\int_{0}^{2\pi}\int_{0}^{\theta_{max}}rd\theta r\sin\theta d\phi=
+\int_{0}^{2\pi}\int_{0}^{\theta_{max}}\sin\theta d\theta d\phi = 2\pi (1-\cos\theta_{max})$ where we have $r=1$. So the PDF
+for cartisian coordinates is $p_{c}(x,y,z)=\frac{1}{2\pi (1-\cos\theta_{max})}$ when $z\ge \cos\theta_{max}$, and zero otherwise.
+We want to use spherical coordinates so let $x = r\sin\theta\cos\phi$, $y = r\sin\theta\sin\phi$ and $z = r\cos\theta$.
+Then $|J_{T}(r,\theta,\phi)|=\begin{vmatrix}
+\frac{\partial x}{\partial r} & \frac{\partial x}{\partial \theta} & \frac{\partial x}{\partial \phi}\\
+\frac{\partial y}{\partial r} & \frac{\partial y}{\partial \theta} & \frac{\partial y}{\partial \phi}\\
+\frac{\partial z}{\partial r} & \frac{\partial z}{\partial \theta} & \frac{\partial z}{\partial \phi}
+\end{vmatrix}=
+\begin{vmatrix}
+\sin\theta\cos\phi & r\cos\theta\cos\phi & -r\sin\theta\sin\phi\\
+\sin\theta\sin\phi & r\cos\theta\sin\phi & r\sin\theta\cos\phi\\
+\cos\theta & -r\sin\theta & 0
+\end{vmatrix}=r^2\sin\theta$, then $p(r,\theta,\phi)=|J_{T}|p_{c}(x,y,z)=\frac{r^2\sin\theta}{2\pi (1-\cos\theta_{max})}$.
+Since $r=1$, we have $p(\theta,\phi)=\frac{\sin\theta}{2\pi (1-\cos\theta_{max})}$.
+Then $p(\theta)=\int_{0}^{2\pi}p(\theta,\phi^{\prime})d\phi^{\prime}=\frac{\sin\theta}{1-\cos\theta_{max}}$,
+$p(\phi | \theta)=\frac{p(\theta,\phi)}{p(\theta)}=\frac{1}{2\pi}$.
+Then the CDFs $P(\theta)=\int_{0}^{\theta}\frac{\sin\theta^{\prime}}{1-\cos\theta_{max}} d\theta^{\prime}=\frac{1-\cos\theta}{1-\cos\theta_{max}}$ and
+$P(\phi | \theta)=\int_{0}^{\phi}\frac{1}{2\pi} d\phi^{\prime}=\frac{\phi}{2\pi}$.
+By inversion method, $\theta=\arccos(1-\xi_{1}(1-\cos\theta_{max}))$ and $\phi = 2\pi \xi_{2}$, where $\xi_{1}$
+and $\xi_{2}$ are uniform random variables in $[0,1)$.
+The points we sample is just $(\sin\theta\cos\phi, \sin\theta\sin\phi, \cos\theta)$.
+
+However, it's computationally expensive to calculate these many trigonometric functions for each sample. **A better way** is to
+use cylindrical mapping. We first sample points on the cylinder surface with radius $R$ and height $1-\cos\theta_{max}$.
+Let $x = R\cos\phi$, $y = R\sin\phi$ and $z = z$. Then $|J_{T}(R,\phi,z)|=\begin{vmatrix}
+\frac{\partial x}{\partial R} & \frac{\partial x}{\partial \phi} & \frac{\partial x}{\partial z}\\
+\frac{\partial y}{\partial R} & \frac{\partial y}{\partial \phi} & \frac{\partial y}{\partial z}\\
+\frac{\partial z}{\partial R} & \frac{\partial z}{\partial \phi} & \frac{\partial z}{\partial z}
+\end{vmatrix}=
+\begin{vmatrix}
+\cos\phi & -R\sin\phi & 0\\
+\sin\phi & R\cos\phi & 0\\
+0 & 0 & 1
+\end{vmatrix}=R=1$, thus the pdf
+$p(R,\phi,z)=p_{c}(x,y,z)=\frac{1}{2\pi(1-\cos\theta_{max})}$, which is the inverse of area of the cylinder, when $z\ge \cos\theta_{max}$, and zero otherwise.
+Thus we can do the naive sampling $z=\cos\theta_{max}+(1-\cos\theta_{max})\xi_{1}$, $\phi=2\pi\xi_{2}$,
+where $\xi_{1}$ and $\xi_{2}$ are uniform random variables in $[0,1)$.
+Finally, using Archimedes' Hat-Box theorem, we project the points on the cylinder surface to the spherical cap surface,
+which will also be uniform. The projected point is $(r\cos\phi, r\sin\phi, z)$, where $r=\sqrt{1-z^2}$.
+
+
+**Warping Visualization:**
+
+<p style="text-align:center;"><img src="images/warp-sphCap.png" alt="Uniform Spherical Cap Warp" /></p>
+
+**$\chi^2$ Hypothesis Test Outcome:**
+
+<p style="text-align:center;"><img src="images/chi2-sphCap.png" alt="Uniform Spherical Cap Chi2 Test" /></p>
+
+
+# Square to Cosine Hemisphere
+**Time spent on this task: 15min**
+
+**Describe your implementation of `Warp::squareToCosineHemisphere` and the associated PDF.**
+
+$p_{c}(x,y,z)=\frac{\cos\theta}{\pi}$, where $\cos\theta=z$, for $z\ge 0$, and zero otherwise.
+$p(\theta, \phi)=|J_{T}|\frac{\cos\theta}{\pi}=\frac{\sin\theta\cos\theta}{\pi}=\frac{\sin 2\theta}{2\pi}$.
+Then $p(\theta)=\int_{0}^{2\pi}p(\theta,\phi^{\prime})d\phi^{\prime}=\sin 2\theta$,
+also $p(\phi | \theta)=\frac{p(\theta,\phi)}{p(\theta)}=\frac{1}{2\pi}$.
+Then the CDFs $P(\theta)=\int_{0}^{\theta}\sin 2\theta^{\prime} d\theta^{\prime}
+=-\frac{1}{2}\cos 2\theta + \frac{1}{2}$ and $P(\phi | \theta)=\int_{0}^{\phi}\frac{1}{2\pi} d\phi^{\prime}=\frac{\phi}{2\pi}$.
+By inversion method, $\theta=\frac{1}{2}\arccos(1-2\xi_{1})$ and $\phi = 2\pi \xi_{2}$,
+where $\xi_{1}$ and $\xi_{2}$ are uniform random variables in $[0,1)$.
+The points we sample is just $(\sin\theta\cos\phi, \sin\theta\sin\phi, \cos\theta)$.
+
+However, there is again **a better way** to do so, which is sampling points on the unit disk and then project them to the hemisphere.
+We just re-use `squareToUniformDisk` to get a point $(x,y)$ on the unit disk, then we have $z=\sqrt{1-x^2-y^2}$ which is for the
+projected point $(x,y,z)$ on the hemisphere.
+
+**Warping Visualization:**
+
+<p style="text-align:center;"><img src="images/warp-hemisphCos.png" alt="Cosine Hemisphere Warp" /></p>
+
+**$\chi^2$ Hypothesis Test Outcome:**
+<p style="text-align:center;"><img src="images/chi2-hemisphCos.png" alt="Cosine Hemisphere Chi2 Test" /></p>
+
+
+# Square to Beckmann
+
+(Please use the provided LaTeX template to answer the questions in this section. For LaTeX math symbols and formulas, referring to this [cheatsheet](http://tug.ctan.org/info/undergradmath/undergradmath.pdf) is recommended.)
+
+**Time spent on this task: 30min**
+
+**Show your derivation of $\int_0^{2\pi}\int_0^{\frac{\pi}{2}}p(\theta, \phi)~d\theta d\phi = 1$ for Beckmann distribution**:
+
+\begin{equation}
+    \begin{split}
+    \bullet ~ P(\theta_0, \phi_0) & = \int_0^{\phi_0}\int_0^{\theta_0}p(\theta, \phi)~d\theta d\phi \\
+                        & = \int_0^{\phi_0}\int_0^{\theta_0}\frac{e^{\frac{-\tan^2\theta}{\alpha^2}}}{\pi \alpha^2 \cos^4\theta} \cos\theta \sin\theta ~d\theta d\phi \\
+                        & = \int_0^{\phi_0}\int_1^{x_0}\frac{-e^{\frac{x^2-1}{\alpha^2 x^2}}}{\pi\alpha^2 x^3}dxd\phi \\
+                        & = -\frac{1}{2\pi}\int_{0}^{\phi_0} e^{\alpha^{-2}(1-x^{-2})}\Bigg|_{1}^{x_0}d\phi \\
+                        & = -\frac{1}{2\pi}(e^{\alpha^{-2}(1-x_{0}^{-2})}-1)\Bigg|_{0}^{\phi_0} \\
+                        & = -\frac{\phi_0}{2\pi}(e^{\alpha^{-2}(-\tan^2\theta_0)}-1))\\
+    \bullet ~ P(\frac{\pi}{2}, 2\pi) & = -\frac{2\pi}{2\pi}(e^{\alpha^{-2}(-\infty^2)}-1)) \\
+                               & = 1
+    \end{split}
+\end{equation}
+
+**Show your derivation of the Beckmann distribution sampling strategy by inverting the CDF, given random uniform samples $\xi_1, \xi_2$**:
+\begin{equation}
+    \begin{split}
+    & \bullet ~ p(\theta, \phi) = \frac{e^{\frac{-\tan^2\theta}{\alpha^2}}}{\pi \alpha^2 \cos^4\theta} \cos\theta \sin\theta \\
+    & \bullet ~ P(\phi) = P(\frac{\pi}{2}, \phi) = \frac{\phi}{2\pi} \\
+    & \bullet ~ P(\theta | \phi) = \int_0^{\theta}\frac{p(\theta^{\prime}, \phi)}{P^{\prime}(\phi)}d\theta^{\prime} =
+2\pi\frac{\partial P(\theta, \phi)}{\partial \phi} = 1- e^{\alpha^{-2}(-\tan^2\theta)} \\
+    & \bullet ~ \phi = 2\pi\xi_1 \\
+    & \bullet ~ \theta = \arctan\sqrt{-\alpha^2 \log(1-\xi_2)} \\
+    & \bullet ~ Sampled ~ Point: \\
+    & ~~~~ x = \cos\phi\sin\theta \\
+    & ~~~~ y = \sin\phi\sin\theta \\
+    & ~~~~ z = \cos\theta \\
+
+    \end{split}
+\end{equation}
+
+**Warping Visualization:**
+
+<p style="text-align:center;"><img src="images/warp-beckm.png" alt="Beckmann Warp" /></p>
+
+**$\chi^2$ Hypothesis Test Outcome:**
+
+<p style="text-align:center;"><img src="images/chi2-beckm.png" alt="Beckmann Chi2 Test" /></p>
+
+
+# Feedback
+**Use this section to provide feedback about this assignment (each task, the handout, Nori, etc.). We appreciate your opinions to help improve future homeworks and projects.**
+
+Fine.
+
+
+# Supplementary
+* For each task, please note down the time you spent working through it and use at least a few sentences to describe your implementation. If applicable, also report the problems you encounter (e.g. whether or how it's solved, what is the difficult part).
+
+* Please let us know to what extent your code is working (e.g. you only managed to work through part of this assignment, or your solution doesn't operate as expected in some corner cases). We encourage you to share your thinking process, and points will be granted based on your description even if the code is not 100% functioning.
+
+* Nori generates both EXR and PNG format output. Please use PNG for image comparison in the report.
+
+* This report template uses [Markdeep](https://casual-effects.com/markdeep/), which supports Markdown syntax in HTML file. For example usage, please refer to the [official demo document](https://casual-effects.com/markdeep/features.md.html).
+
+* LaTeX is also supported for typing mathematical formulas:
+$$
+L_o(\mathbf{x}, \omega_o) = \int_{\Omega} L_i(\mathbf{x},\omega_i)\, f(\mathbf{x}, \omega_i, \omega_o)\, |\cos\theta_i|\, \mathrm{d}\omega_i
+$$
+
+
+
+<!-- Bootstrap core CSS and JavaScript -->
+
+<link href="../resources/offcanvas.css" rel="stylesheet">
+<link href="../resources/twentytwenty.css" rel="stylesheet" type="text/css" />
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script src="../resources/bootstrap.min.js"></script>
+<script src="../resources/jquery.event.move.js"></script>
+<script src="../resources/jquery.twentytwenty.js"></script>
+
+<script>
+    $(window).load(function () { $(".twentytwenty-container").twentytwenty({ default_offset_pct: 0.5 }); });
+</script>
+
+<!-- Markdeep: -->
+<script>var markdeepOptions = { onLoad: function () { $(".twentytwenty-container").twentytwenty({ default_offset_pct: 0.5, move_slider_on_hover: true }); }, tocStyle: 'none' };</script>
+<script src="https://morgan3d.github.io/markdeep/latest/markdeep.min.js?" charset="utf-8"></script>
+<script>window.alreadyProcessedMarkdeep || (document.body.style.visibility = "visible")</script>
